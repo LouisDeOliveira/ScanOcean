@@ -25,23 +25,27 @@ class Agent:
     def move(self, forces) -> None:
 
         self.acc = forces
-        self.vel = self.vel + DT * self.acc
-        self.pos = self.pos + DT * self.vel
+        self.vel += DT * self.acc
+        self.pos += DT * self.vel
+
+    def fluid_force(self,) -> np.ndarray:
+
+        return -F * self.vel
 
 
 class Seeker(Agent):
     def __init__(self,):
         super(Seeker, self).__init__()
-        self.status = {
-            "free": True,  # No target assigned
-            "going": False,  # Going to the target
-            "checking": False,  # Currently checking a target
-        }
 
 
 class Checker(Agent):
     def __init__(self,):
         super(Checker, self).__init__()
+        self.status = {
+            "free": True,  # No target assigned
+            "going": False,  # Going to the target
+            "checking": False,  # Currently checking a target
+        }
 
 
 class Target(Agent):

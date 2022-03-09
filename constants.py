@@ -2,7 +2,7 @@
 WIDTH = 800
 HEIGHT = 800
 TICK_FREQ = 100
-DT = 1/TICK_FREQ
+DT = 1 / TICK_FREQ
 SIZE = 5
 COLORS = {
     "white": (255, 255, 255),

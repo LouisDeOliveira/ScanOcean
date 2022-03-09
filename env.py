@@ -7,5 +7,11 @@ class Env:
     def update(self,):
         pass
 
+    def spring_force(self,):
+        pass
+
+    def charge_force(self,):
+        pass
+
     def render(self,):
         pass
