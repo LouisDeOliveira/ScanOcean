@@ -20,8 +20,21 @@ COLORS = {
 
 
 # SIMULATION PARAMETERS
+DIM = 2
 MAX_SPEED = 100
-MAX_ACC = 100
-F = 2
+MAX_ACC = 900
+F_FLUID = 2
 RES = 150
-K = 5000
+
+K_SEEKER = 20
+K_CHECKER = 10
+
+L0_SEEKER = 150
+L0_CHECKER = 200
+
+FOV_SEEKER = 50
+FOV_CHECKER = 50
+
+C_NODE = 100000  # Constant in the Newtonian force attracting the Seekers to the Nodes
+
+F_SEEKER_TARGET = 100000
