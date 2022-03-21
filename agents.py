@@ -1,7 +1,10 @@
+from email.errors import CloseBoundaryNotFoundDefect
 import numpy as np
 import uuid
 
-from utils import get_angle
+from sklearn import neighbors
+
+from utils import get_angle, neighbors_agents
 from constants import *
 from env import Env
 
@@ -75,12 +78,14 @@ class Node(Agent):
                  acc: np.ndarray = np.zeros(DIM),
                  env: Env = None) -> None:
         super(Node, self).__init__(pos, vel, acc, env)
+        self.visited= False
 
     def value(self,) -> float:
         """
         Returns a newton force coefficient determined by the other nearby nodes
+        Here, the value returned is inversely proportional to 1 plus the number of adjacent nodes
         """
-        pass
+        return C_NODE / (len(neighbors_agents(self, radius = RES, class_list = Node)) + 1)
 
 
 if __name__ == '__main__':
