@@ -1,10 +1,7 @@
-from email.errors import CloseBoundaryNotFoundDefect
 import numpy as np
 import uuid
 
-from sklearn import neighbors
-
-from utils import get_angle, neighbors_agents
+from utils import get_angle
 from constants import *
 from env import Env
 
@@ -14,12 +11,14 @@ class Agent:
                  pos: np.ndarray = np.zeros(DIM),
                  vel: np.ndarray = np.zeros(DIM),
                  acc: np.ndarray = np.zeros(DIM),
-                 env: Env = None) -> None:
+                 env: Env = None,
+                 radius: float = RES) -> None:
         self.id = uuid.uuid1()
         self.pos = pos
         self.vel = vel
         self.acc = acc
         self.env = env
+        self.radius = radius # Radius of communication/detection of other agents
 
     def move(self, forces: np.ndarray) -> None:
         self.acc = forces
@@ -28,6 +27,22 @@ class Agent:
 
     def fluid_force(self,) -> np.ndarray:
         return -F_FLUID * self.vel
+
+    def distance(self, agentB) -> float:
+        """
+        Distance between to agents 
+        """
+        return np.sqrt(np.linalg.norm(self.pos-agentB.pos))
+
+    def neighbors_agents(self, class_list = {"Seeker", "Checker", "Target", "Node"}) -> set:
+        """
+        Returns the surrounding agents of the desired class(es)
+        """
+        ids = set()
+        for agent in self.env.agents : 
+            if (type(agent) in class_list) and (self.distance(self, agent) <= self.radius):
+                ids.add(agent.id)
+        return ids
 
 
 class Seeker(Agent):
