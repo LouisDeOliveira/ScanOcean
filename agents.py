@@ -30,7 +30,7 @@ class Agent:
 
     def distance(self, agent) -> float:
         """
-        Distance between to agents 
+        Distance between 2 agents 
         """
         return np.sqrt(np.linalg.norm(self.pos-agent.pos))
 
@@ -40,7 +40,7 @@ class Agent:
         """
         ids = set()
         for agent in self.env.agents : 
-            if (type(agent) in class_list) and (self.distance(self, agent) <= self.radius):
+            if (type(agent) in class_list) and (self.distance(agent) <= self.radius):
                 ids.add(agent.id)
         return ids
 
@@ -100,7 +100,7 @@ class Node(Agent):
         Returns a newton force coefficient determined by the other nearby nodes
         Here, the value returned is inversely proportional to 1 plus the number of adjacent nodes
         """
-        return C_NODE / (len(neighbors_agents(self, radius = RES, class_list = Node)) + 1)
+        return C_NODE / (len(self.neighbors_agents(radius = RES, class_list = {Node})) + 1)
 
 
 if __name__ == '__main__':
