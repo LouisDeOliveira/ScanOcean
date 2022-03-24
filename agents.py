@@ -28,15 +28,15 @@ class Agent:
     def fluid_force(self,) -> np.ndarray:
         return -F_FLUID * self.vel
 
-    def distance(self, agentB) -> float:
+    def distance(self, agent) -> float:
         """
         Distance between to agents 
         """
-        return np.sqrt(np.linalg.norm(self.pos-agentB.pos))
+        return np.sqrt(np.linalg.norm(self.pos-agent.pos))
 
     def neighbors_agents(self, class_list = {"Seeker", "Checker", "Target", "Node"}) -> set:
         """
-        Returns the surrounding agents of the desired class(es)
+        Returns the surrounding agents of the desired class(es), in a set
         """
         ids = set()
         for agent in self.env.agents : 
