@@ -52,16 +52,24 @@ class Agent:
         return np.sqrt(np.linalg.norm(self.pos - agent.pos))
 
     def neighbors_agents(self,
-                         class_set={"Seeker", "Checker", "Target", "Node"}) -> set:
+                         class_set={"Seeker",
+                                    "Checker",
+                                    "Target",
+                                    "Node", }) -> set:
         """
         Returns the surrounding agents of the desired class(es), in a set
         """
-        ids = set()
+        neighbours = set()
         for agent in self.env.agents:
             if (type(agent).__name__ in class_set) and (self.distance(agent) <= self.radius):
                 if agent.id != self.id:
-                    ids.add(agent.id)
-        return ids
+                    neighbours.add({"id": agent.id,
+                                    "pos": agent.pos,
+                                    "type": type(agent).__name__, })
+        return neighbours
+
+    def get_forces(self,):
+        raise NotImplementedError("Should be implemented for each subclass")
 
     def __repr__(self):
         return f"""{type(self).__name__} :\n
@@ -141,19 +149,19 @@ class Env:
         self.agents = set()
         self.time = 0
 
-        for i in range(N_S):
+        for _ in range(N_S):
             self.agents.add(Seeker(self.pos_init(), env=self))
 
-        for i in range(N_C):
+        for _ in range(N_C):
             self.agents.add(Checker(self.pos_init(), env=self))
 
-        for i in range(N_T):
+        for _ in range(N_T):
             self.agents.add(Checker(self.pos_init(), env=self))
 
-    def add_agent(self, agent):
+    def add_agent(self, agent: Agent) -> None:
         self.agents.add(agent)
 
-    def get_agents_by_type(self, test):
+    def get_agents_by_type(self, test: str):
         res = set()
         for agent in self.agents:
             if type(agent).__name__ == test:
@@ -164,15 +172,21 @@ class Env:
         # For all agents type, sum the forces, update their pos/speed/acc
         self.time += DT
 
+        for agent in self.agents:
+            # All forces must be computed before updating
+            # positions and velocities
+            agent.get_forces()
+
+        for agent in self.agents:
+            # with all forces updated, we can move all the agents
+            agent.move()
+
     def render(self,):
-        pass
+        raise NotImplementedError("Maybe add a matplotlib placeholder")
 
     def pos_init(self, lower_bounds=[0., 0.], upper_bounds=[1., 1.]):
 
         return np.random.uniform(lower_bounds, upper_bounds, size=2)
-
-    def vel_init(self):
-        pass
 
 
 if __name__ == '__main__':
