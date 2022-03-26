@@ -1,7 +1,6 @@
 from __future__ import annotations
 import numpy as np
 import uuid
-# from env import Env
 
 from utils import normalize
 from constants import (DIM, RES, DT, F_FLUID, K_SEEKER, L0_SEEKER,

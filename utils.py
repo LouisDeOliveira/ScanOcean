@@ -1,7 +1,5 @@
 import numpy as np
 
-from simulator import Agent
-
 
 def get_angle(vector: np.ndarray) -> float:
     """
