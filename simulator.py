@@ -140,6 +140,7 @@ class Env:
 
     def __init__(self, N_S: int, N_C: int, N_T: int) -> None:
         self.agents = set()
+        self.time = 0
 
         for i in range(N_S):
             self.agents.add(Seeker(self.pos_init(), env=self))
@@ -161,7 +162,8 @@ class Env:
         return res
 
     def update(self,):
-        pass
+        # For all agents type, sum the forces, update their pos/speed/acc
+        self.time += DT
 
     def render(self,):
         pass
