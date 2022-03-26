@@ -15,9 +15,9 @@ from constants import (DIM, RES, DT, F_FLUID, K_SEEKER, L0_SEEKER,
 
 class Agent:
     def __init__(self,
-                 pos: np.ndarray = np.zeros(DIM),
-                 vel: np.ndarray = np.zeros(DIM),
-                 acc: np.ndarray = np.zeros(DIM),
+                 pos: np.ndarray = np.zeros(DIM, dtype=float),
+                 vel: np.ndarray = np.zeros(DIM, dtype=float),
+                 acc: np.ndarray = np.zeros(DIM, dtype=float),
                  env: Env = None,
                  radius: float = RES) -> None:
         self.id = uuid.uuid4()
@@ -43,7 +43,7 @@ class Agent:
     def newton_force(self, agentB, cst: float) -> np.ndarray:
         if self.distance(agentB) == 0:
             print("Oops we dodged a division by zero -> ratio + pa lu")
-            return np.zeros(DIM)
+            return np.zeros(DIM, dtype=float)
         return -cst * normalize(self, agentB) / self.distance(agentB)**2
 
     def distance(self, agent) -> float:
@@ -59,19 +59,25 @@ class Agent:
         """
         ids = set()
         for agent in self.env.agents:
-            if (type(agent) in class_list) and (self.distance(agent) <= self.radius):
-                ids.add(agent.id)
+            if (type(agent).__name__ in class_list) and (self.distance(agent) <= self.radius):
+                if agent.id != self.id:
+                    ids.add(agent.id)
         return ids
 
     def __repr__(self):
-        return f"{type(self).__name__} :\nid = {self.id},\npos = {self.pos}\n"
+        return f"""{type(self).__name__} :\n
+                    id = {self.id},\n
+                    pos = {self.pos},\n
+                    vel = {self.vel},\n
+                    acc = {self.acc} 
+                """
 
 
 class Seeker(Agent):
     def __init__(self,
-                 pos: np.ndarray = np.zeros(DIM),
-                 vel: np.ndarray = np.zeros(DIM),
-                 acc: np.ndarray = np.zeros(DIM),
+                 pos: np.ndarray = np.zeros(DIM, dtype=float),
+                 vel: np.ndarray = np.zeros(DIM, dtype=float),
+                 acc: np.ndarray = np.zeros(DIM, dtype=float),
                  env: Env = None) -> None:
         super(Seeker, self).__init__(pos, vel, acc, env)
         self.K = K_SEEKER
@@ -80,9 +86,9 @@ class Seeker(Agent):
 
 class Checker(Agent):
     def __init__(self,
-                 pos: np.ndarray = np.zeros(DIM),
-                 vel: np.ndarray = np.zeros(DIM),
-                 acc: np.ndarray = np.zeros(DIM),
+                 pos: np.ndarray = np.zeros(DIM, dtype=float),
+                 vel: np.ndarray = np.zeros(DIM, dtype=float),
+                 acc: np.ndarray = np.zeros(DIM, dtype=float),
                  env: Env = None) -> None:
         super(Checker, self).__init__(pos, vel, acc, env)
         self.K = K_CHECKER
@@ -96,9 +102,9 @@ class Checker(Agent):
 
 class Target(Agent):
     def __init__(self,
-                 pos: np.ndarray = np.zeros(DIM),
-                 vel: np.ndarray = np.zeros(DIM),
-                 acc: np.ndarray = np.zeros(DIM),
+                 pos: np.ndarray = np.zeros(DIM, dtype=float),
+                 vel: np.ndarray = np.zeros(DIM, dtype=float),
+                 acc: np.ndarray = np.zeros(DIM, dtype=float),
                  env: Env = None) -> None:
         super(Target, self).__init__(pos, vel, acc, env)
         self.status = {
@@ -110,9 +116,9 @@ class Target(Agent):
 
 class Node(Agent):
     def __init__(self,
-                 pos: np.ndarray = np.zeros(DIM),
-                 vel: np.ndarray = np.zeros(DIM),
-                 acc: np.ndarray = np.zeros(DIM),
+                 pos: np.ndarray = np.zeros(DIM, dtype=float),
+                 vel: np.ndarray = np.zeros(DIM, dtype=float),
+                 acc: np.ndarray = np.zeros(DIM, dtype=float),
                  env: Env = None) -> None:
         super(Node, self).__init__(pos, vel, acc, env)
         self.visited = False
@@ -136,13 +142,13 @@ class Env:
         self.agents = set()
 
         for i in range(N_S):
-            self.agents.add(Seeker(np.array([i, i])))
+            self.agents.add(Seeker(self.pos_init(), env=self))
 
         for i in range(N_C):
-            self.agents.add(Checker(np.array([i, i])))
+            self.agents.add(Checker(self.pos_init(), env=self))
 
         for i in range(N_T):
-            self.agents.add(Checker(np.array([i, i])))
+            self.agents.add(Checker(self.pos_init(), env=self))
 
     def add_agent(self, agent):
         self.agents.add(agent)
@@ -160,8 +166,9 @@ class Env:
     def render(self,):
         pass
 
-    def pos_init(self):
-        pass
+    def pos_init(self, lower_bounds=[0., 0.], upper_bounds=[1., 1.]):
+
+        return np.random.uniform(lower_bounds, upper_bounds, size=2)
 
     def vel_init(self):
         pass
@@ -169,9 +176,5 @@ class Env:
 
 if __name__ == '__main__':
     env = Env(3, 3, 3)
-    print(len(env.agents))
-    node = Node(env=env)
-    env.add_agent(node)
-    print(node.value())
-    print(len(env.agents))
-    print(env.agents)
+    for agent in env.agents:
+        print(agent)
