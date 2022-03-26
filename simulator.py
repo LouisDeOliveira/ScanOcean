@@ -53,13 +53,13 @@ class Agent:
         return np.sqrt(np.linalg.norm(self.pos - agent.pos))
 
     def neighbors_agents(self,
-                         class_list={"Seeker", "Checker", "Target", "Node"}) -> set:
+                         class_set={"Seeker", "Checker", "Target", "Node"}) -> set:
         """
         Returns the surrounding agents of the desired class(es), in a set
         """
         ids = set()
         for agent in self.env.agents:
-            if (type(agent).__name__ in class_list) and (self.distance(agent) <= self.radius):
+            if (type(agent).__name__ in class_set) and (self.distance(agent) <= self.radius):
                 if agent.id != self.id:
                     ids.add(agent.id)
         return ids
