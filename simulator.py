@@ -69,7 +69,7 @@ class Agent:
                     id = {self.id},\n
                     pos = {self.pos},\n
                     vel = {self.vel},\n
-                    acc = {self.acc} 
+                    acc = {self.acc}
                 """
 
 
