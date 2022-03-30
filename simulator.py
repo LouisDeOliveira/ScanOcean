@@ -1,10 +1,13 @@
 from __future__ import annotations
+import matplotlib.pyplot as plt
 import numpy as np
 import uuid
+import time
+
 
 from utils import normalize
 from constants import (DIM, RES, DT, F_FLUID, K_SEEKER, L0_SEEKER,
-                       K_CHECKER, L0_CHECKER, C_NODE)
+                       K_CHECKER, L0_CHECKER, CONSTANTS, C_NODE)
 
 
 ################################################################################
@@ -26,24 +29,38 @@ class Agent:
         self.env = env
         self.radius = radius  # Radius of communication/detection of other agents
 
-    def move(self, forces: np.ndarray) -> None:
-        self.acc = forces
+    def move(self) -> None:
         self.vel += DT * self.acc
         self.pos += DT * self.vel
 
     def fluid_force(self,) -> np.ndarray:
         return -F_FLUID * self.vel
 
-    def spring_force(self, agentB) -> np.ndarray:
-        return self.K * \
-            (self.distance(agentB) - self.L0) * \
-            normalize(self, agentB)
+    def spring_force(self, agents) -> np.ndarray:
+        force = np.zeros(DIM, dtype=float)
+        for agentB in agents:
+            if agentB is None:
+                continue
+            else:
+                force += self.K * \
+                    (self.distance(agentB) - self.L0) * \
+                    normalize((agentB.pos - self.pos))
+        return force
 
-    def newton_force(self, agentB, cst: float) -> np.ndarray:
-        if self.distance(agentB) == 0:
-            print("Oops we dodged a division by zero -> ratio + pa lu")
-            return np.zeros(DIM, dtype=float)
-        return -cst * normalize(self, agentB) / self.distance(agentB)**2
+    def newton_force(self, agents) -> np.ndarray:
+        force = np.zeros(DIM, dtype=float)
+        for agentB in agents:
+            if self.distance(agentB) == 0:
+                print("Oops we dodged a division by zero -> ratio + pa lu")
+                continue
+            if agentB is None:
+                return np.zeros(DIM, dtype=float)
+            else:
+
+                force -= CONSTANTS[type(self).__name__][type(agentB).__name__] * \
+                    normalize((agentB.pos - self.pos)) / \
+                    self.distance(agentB)**2
+        return force
 
     def distance(self, agent) -> float:
         """
@@ -63,13 +80,11 @@ class Agent:
         for agent in self.env.agents:
             if (type(agent).__name__ in class_set) and (self.distance(agent) <= self.radius):
                 if agent.id != self.id:
-                    neighbours.add({"id": agent.id,
-                                    "pos": agent.pos,
-                                    "type": type(agent).__name__, })
+                    neighbours.add(agent)
         return neighbours
 
     def get_forces(self,):
-        raise NotImplementedError("Should be implemented for each subclass")
+        self.acc = np.zeros(2)
 
     def __repr__(self):
         return f"""{type(self).__name__} :\n
@@ -90,6 +105,20 @@ class Seeker(Agent):
         self.K = K_SEEKER
         self.L0 = L0_SEEKER
 
+    def get_forces(self,):
+        forces = []
+        forces.append(self.fluid_force())
+        forces.append(self.spring_force([agent
+                                         for agent in self.neighbors_agents(class_set={"Seeker", "Checker"})]))
+        forces.append(self.newton_force([agent
+                                         for agent in self.neighbors_agents({"Node"})]))
+        forces.append(self.newton_force([agent
+                                         for agent in self.neighbors_agents({"Target"})
+                                         if not agent.status["targeted"]
+                                         and not agent.status["assigned"]
+                                         and not agent.status["checked"]]))
+        self.acc = np.sum(np.array(forces), axis=0)
+
 
 class Checker(Agent):
     def __init__(self,
@@ -105,6 +134,17 @@ class Checker(Agent):
             "going": False,  # Going to the target
             "checking": False,  # Currently checking a target
         }
+
+    def get_forces(self,):
+        forces = []
+        forces.append(self.fluid_force())
+        forces.append(self.spring_force([agent
+                                         for agent in self.neighbors_agents(class_set={"Checker"})]))
+        forces.append(self.newton_force([agent
+                                        for agent in self.neighbors_agents({"Target"})
+                                        if not agent.status["assigned"]
+                                        and not agent.status["checked"]]))
+        self.acc = np.sum(np.array(forces), axis=0)
 
 
 class Target(Agent):
@@ -156,7 +196,7 @@ class Env:
             self.agents.add(Checker(self.pos_init(), env=self))
 
         for _ in range(N_T):
-            self.agents.add(Checker(self.pos_init(), env=self))
+            self.agents.add(Target(self.pos_init(), env=self))
 
     def add_agent(self, agent: Agent) -> None:
         self.agents.add(agent)
@@ -182,14 +222,28 @@ class Env:
             agent.move()
 
     def render(self,):
-        raise NotImplementedError("Maybe add a matplotlib placeholder")
 
-    def pos_init(self, lower_bounds=[0., 0.], upper_bounds=[1., 1.]):
+        colors = {"Checker": "red",
+                  "Seeker": "blue",
+                  "Target": "green",
+                  "Node": "yellow"}
+
+        for agent in self.agents:
+            plt.scatter(agent.pos[0], agent.pos[1],
+                        c=colors[type(agent).__name__])
+
+        plt.show()
+        time.sleep(DT)
+        plt.close()
+
+    def pos_init(self, lower_bounds=[-10, -10.], upper_bounds=[10., 10.]):
 
         return np.random.uniform(lower_bounds, upper_bounds, size=2)
 
 
 if __name__ == '__main__':
-    env = Env(3, 3, 3)
-    for agent in env.agents:
-        print(agent)
+    env = Env(5, 5, 5)
+    env.render()
+    for _ in range(10):
+        env.update()
+        env.render()

@@ -37,4 +37,7 @@ FOV_CHECKER = 50
 
 C_NODE = 100000  # Constant in the Newtonian force attracting the Seekers to the Nodes
 
-F_SEEKER_TARGET = 100000
+# F_SEEKER_TARGET = 100000
+
+CONSTANTS = {"Seeker": {"Node": 100000, "Target": 100000},
+             "Checker": {"Node": 100000, "Target": 100000}}
