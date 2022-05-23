@@ -3,10 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Old/
 # C extensions
 *.so
 
 # Distribution / packaging
+.vscode
 .Python
 build/
 develop-eggs/
