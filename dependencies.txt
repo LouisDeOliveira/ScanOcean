@@ -1,0 +1,5 @@
+### For OpenGL ###
+pip install glfw
+pip install pyopengl
+pip install pyrr
+pip install pillow
